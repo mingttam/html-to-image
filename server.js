@@ -88,8 +88,16 @@ async function initBrowser() {
     };
 
     // Sử dụng executablePath nếu trong Docker container
-    if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+    // if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+    //   launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+    // }
+
+    if (process.env.PUPPETEER_EXECUTABLE_PATH && 
+        process.env.PUPPETEER_EXECUTABLE_PATH !== '/usr/bin/chromium-browser') {
       launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+      console.log('🔧 Using custom Chrome path:', process.env.PUPPETEER_EXECUTABLE_PATH);
+    } else {
+      console.log('🔍 Using Puppeteer bundled Chrome from cache');
     }
 
     try {
@@ -107,6 +115,8 @@ async function initBrowser() {
         "--disable-gpu",
         "--single-process",
       ];
+
+      delete launchOptions.executablePath;
 
       browser = await puppeteer.launch(launchOptions);
       console.log("🌐 Browser initialized with minimal config");
