@@ -1,5 +1,6 @@
 const express = require("express");
-const puppeteer = require("puppeteer");
+const puppeteer = require("puppeteer-core");
+const chromium = require("@sparticuz/chromium");
 const crypto = require("crypto");
 
 const app = express();
@@ -62,64 +63,21 @@ const imageOptions = {
 // Initialize browser instance
 async function initBrowser() {
   if (!browser) {
-    const launchOptions = {
-      headless: "new",
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-gpu",
-        "--no-first-run",
-        "--no-zygote",
-        "--single-process",
-        "--disable-extensions",
-        "--disable-default-apps",
-        "--disable-web-security",
-        "--disable-features=VizDisplayCompositor",
-        "--disable-background-timer-throttling",
-        "--disable-renderer-backgrounding",
-        "--disable-backgrounding-occluded-windows",
-        "--disable-ipc-flooding-protection",
-        "--enable-features=NetworkService,NetworkServiceInProcess",
-        "--force-color-profile=srgb",
-        "--metrics-recording-only",
-        "--use-mock-keychain",
-      ],
-    };
-
-    // Sử dụng executablePath nếu trong Docker container
-    // if (process.env.PUPPETEER_EXECUTABLE_PATH) {
-    //   launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
-    // }
-
-    if (process.env.PUPPETEER_EXECUTABLE_PATH && 
-        process.env.PUPPETEER_EXECUTABLE_PATH !== '/usr/bin/chromium-browser') {
-      launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
-      console.log('🔧 Using custom Chrome path:', process.env.PUPPETEER_EXECUTABLE_PATH);
-    } else {
-      console.log('🔍 Using Puppeteer bundled Chrome from cache');
-    }
-
     try {
-      browser = await puppeteer.launch(launchOptions);
-      console.log("🌐 Browser initialized successfully");
+      console.log('🔧 Initializing browser with @sparticuz/chromium...');
+      
+      browser = await puppeteer.launch({
+        args: chromium.args,
+        defaultViewport: chromium.defaultViewport,
+        executablePath: await chromium.executablePath(),
+        headless: chromium.headless,
+        ignoreHTTPSErrors: true,
+      });
+      
+      console.log("🌐 Browser initialized successfully with @sparticuz/chromium");
     } catch (error) {
       console.error("❌ Failed to initialize browser:", error.message);
-
-      // Retry với cấu hình đơn giản hơn
-      console.log("🔄 Retrying with minimal configuration...");
-      launchOptions.args = [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-gpu",
-        "--single-process",
-      ];
-
-      delete launchOptions.executablePath;
-
-      browser = await puppeteer.launch(launchOptions);
-      console.log("🌐 Browser initialized with minimal config");
+      throw error;
     }
   }
   return browser;

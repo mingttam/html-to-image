@@ -4,12 +4,13 @@
   "description": "High-Performance Node.js server that converts HTML to Images using Puppeteer - VPS and Docker optimized",
   "main": "server.js",
   "scripts": {
-    "start": "node setup-chrome.js && node server.js",
+    "start": "node server.js",
     "dev": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "puppeteer": "^24.22.3"
+    "puppeteer-core": "^21.0.0",
+    "@sparticuz/chromium": "^119.0.2"
   },
   "engines": {
     "node": ">=18.0.0",
